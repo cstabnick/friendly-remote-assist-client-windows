@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -13,10 +15,13 @@ namespace FriendlyRemoteClientWinForms
     {
         private Queue<byte[]> _bytes = new Queue<byte[]>();
 
-        public static byte[] ImageToByte(Image img)
+        public static byte[] ImageToByte(Bitmap image, ImageFormat format)
         {
-            ImageConverter converter = new ImageConverter();
-            return (byte[])converter.ConvertTo(img, typeof(byte[]));
+            using (MemoryStream ms = new MemoryStream())
+            {
+                image.Save(ms, format);
+                return ms.ToArray();
+            }
         }
 
         public Form1()
@@ -40,6 +45,13 @@ namespace FriendlyRemoteClientWinForms
                     byte[] ba = _bytes.Dequeue();
 
                     richTextBox1.Text = $"{ba.Length.ToString()} number of bytes, items in queue: {_bytes.Count}";
+
+                    using (var ms = new MemoryStream(ba))
+                    {
+                        var img = new Bitmap(ms);
+                        if (this.pictureBox1 != null)
+                            this.pictureBox1.Image = img;    
+                    }
                 }
             }
         }
@@ -58,9 +70,8 @@ namespace FriendlyRemoteClientWinForms
 
                     Thread.Sleep(40);
 
-                    var f = ScreenCapture.ResizeImage(ScreenCapture.CaptureDesktop(), picWidth, picHeight);
-                    _bytes.Enqueue(ImageToByte(f));
-                    if (pictureBox != null) pictureBox.Image = f;
+                    var bmp = ScreenCapture.ResizeImage(ScreenCapture.CaptureDesktop(), picWidth, picHeight);
+                    _bytes.Enqueue(ImageToByte(bmp, ImageFormat.Bmp));
                 }
                 catch (Exception e)
                 {
