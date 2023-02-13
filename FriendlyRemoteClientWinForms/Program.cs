@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -16,7 +17,10 @@ namespace FriendlyRemoteClientWinForms
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Thread t = new Thread(() => Application.Run(new ReceiverForm()));
+            Thread t2 = new Thread(() => Application.Run(new Form1()));
+            t.Start();
+            t2.Start();
         }
     }
 }
